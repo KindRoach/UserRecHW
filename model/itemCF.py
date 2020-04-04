@@ -13,7 +13,7 @@ class ItemCF(object):
     def train(self):
         pass
 
-    def calculate_sim(self, i: int, j: int):
+    def calculate_movie_sim(self, i: int, j: int):
         users_like_i = set(np.where(self.M[i, :] != 0)[0])
         users_like_j = set(np.where(self.M[j, :] != 0)[0])
         both = users_like_i & users_like_j
@@ -27,12 +27,12 @@ class ItemCF(object):
 
         for i in range(self.M.shape[0]):
             if self.M[i, user_id - 1] != 0:
-                sim = self.calculate_sim(i, movie_id - 1)
+                sim = self.calculate_movie_sim(i, movie_id - 1)
                 neighbors.append((i, sim))
 
         total_sim = 0
         rating_predict = 0
-        neighbors = sorted(neighbors, key=lambda pair: -pair[1])[:self.KNN_N]
+        neighbors = sorted(neighbors, key=lambda n: -n[1])[:self.KNN_N]
         for i, sim in neighbors:
             total_sim += sim
             rating_predict += self.M[i, user_id - 1] * sim
