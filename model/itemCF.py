@@ -2,13 +2,16 @@ from typing import List
 
 import numpy as np
 
-from data_reader import Rating, generate_rating_matrix
+from tool.data_reader import Rating, generate_rating_matrix
 
 
 class ItemCF(object):
     def __init__(self, ratings_train: List[Rating], knn_n: int):
         self.M = generate_rating_matrix(ratings_train).T
         self.KNN_N = knn_n
+
+    def train(self):
+        pass
 
     def calculate_sim(self, i: int, j: int):
         users_like_i = set(np.where(self.M[i, :] != 0)[0])

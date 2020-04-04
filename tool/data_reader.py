@@ -3,6 +3,8 @@ from typing import List
 
 import numpy as np
 
+from tool.log_helper import get_logger
+
 
 @dataclass
 class Movie(object):
@@ -75,16 +77,19 @@ def generate_rating_matrix(ratings: List[Rating]) -> np.ndarray:
     :param ratings: a list of ratings.
     :return: the rating matrix in [user_id : movie_id], 0 for no ratings.
     """
-    m = _max_user_id
-    n = _max_movie_id
+    m = max_user_id
+    n = max_movie_id
     rating_matrix = np.zeros([m, n])
     for r in ratings:
         rating_matrix[r.user_id - 1, r.movie_id - 1] = r.rating
     return rating_matrix
 
 
-_movies = read_movies()
-_users = read_users()
-_ratings = read_ratings()
-_max_movie_id = max(_movies, key=lambda m: m.id).id
-_max_user_id = max(_users, key=lambda u: u.id).id
+logger = get_logger()
+logger.info("loading data from file...")
+all_movies = read_movies()
+all_users = read_users()
+all_ratings = read_ratings()
+max_movie_id = max(all_movies, key=lambda m: m.id).id
+max_user_id = max(all_users, key=lambda u: u.id).id
+logger.info("data loaded!")
