@@ -6,9 +6,9 @@ from tool.data_reader import Rating, generate_rating_matrix
 
 
 class ItemCF(object):
-    def __init__(self, ratings_train: List[Rating], knn_n: int):
+    def __init__(self, ratings_train: List[Rating], knn_k: int):
         self.M = generate_rating_matrix(ratings_train).T
-        self.KNN_N = knn_n
+        self.KNN_K = knn_k
 
     def train(self):
         pass
@@ -32,7 +32,7 @@ class ItemCF(object):
 
         total_sim = 0
         rating_predict = 0
-        neighbors = sorted(neighbors, key=lambda n: -n[1])[:self.KNN_N]
+        neighbors = sorted(neighbors, key=lambda n: -n[1])[:self.KNN_K]
         for i, sim in neighbors:
             total_sim += sim
             rating_predict += self.M[i, user_id - 1] * sim
