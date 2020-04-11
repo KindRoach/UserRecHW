@@ -27,8 +27,8 @@ class UserCF(object):
         neighbors = []
 
         for i in range(self.M.shape[0]):
-            if self.M[i, movie_id - 1] != 0:
-                sim = self.calculate_user_sim(i, user_id - 1)
+            if self.M[i, movie_id] != 0:
+                sim = self.calculate_user_sim(i, user_id)
                 neighbors.append((i, sim))
 
         neighbors = [n for n in neighbors if n[1] > 0]
@@ -40,8 +40,8 @@ class UserCF(object):
         rating_predict = 0
         for i, sim in neighbors:
             total_sim += sim
-            rating_predict += (self.M[i, movie_id - 1] - self.calculate_avg_rating_for_user(i)) * sim
+            rating_predict += (self.M[i, movie_id] - self.calculate_avg_rating_for_user(i)) * sim
         rating_predict /= total_sim
-        rating_predict += self.calculate_avg_rating_for_user(user_id - 1)
+        rating_predict += self.calculate_avg_rating_for_user(user_id)
 
         return rating_predict

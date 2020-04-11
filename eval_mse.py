@@ -7,7 +7,7 @@ from model.itemCF import ItemCF
 from tool.log_helper import get_logger
 from tool.path_helper import ROOT_DIR
 
-ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.9999)
+ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.999)
 ratings_matrix = generate_rating_matrix(ratings_train)
 for model in [
     ItemCF(ratings_matrix, knn_k=10),

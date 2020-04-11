@@ -29,6 +29,6 @@ class SvdMF(object):
         return self.M[i, :].sum() / (self.M[i, :] != 0).sum()
 
     def predict(self, user_id: int, movie_id: int) -> float:
-        avg = self.calculate_avg_rating_for_user(user_id - 1)
-        dot = self.U[user_id - 1, :].dot(self.S).dot(self.V[:, movie_id - 1])
+        avg = self.calculate_avg_rating_for_user(user_id)
+        dot = self.U[user_id, :].dot(self.S).dot(self.V[:, movie_id])
         return avg + dot

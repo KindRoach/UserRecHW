@@ -22,8 +22,8 @@ class ItemCF(object):
         neighbors = []
 
         for i in range(self.M.shape[0]):
-            if self.M[i, user_id - 1] != 0:
-                sim = self.calculate_movie_sim(i, movie_id - 1)
+            if self.M[i, user_id] != 0:
+                sim = self.calculate_movie_sim(i, movie_id)
                 neighbors.append((i, sim))
 
         total_sim = 0
@@ -31,7 +31,7 @@ class ItemCF(object):
         neighbors = sorted(neighbors, key=lambda n: -n[1])[:self.KNN_K]
         for i, sim in neighbors:
             total_sim += sim
-            rating_predict += self.M[i, user_id - 1] * sim
+            rating_predict += self.M[i, user_id] * sim
         rating_predict /= total_sim
 
         return rating_predict

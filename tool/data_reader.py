@@ -83,9 +83,9 @@ def generate_rating_matrix(ratings: List[Rating]) -> np.ndarray:
     """
     m = max_user_id
     n = max_movie_id
-    rating_matrix = np.zeros([m, n])
+    rating_matrix = np.zeros([m + 1, n + 1])
     for r in ratings:
-        rating_matrix[r.user_id - 1, r.movie_id - 1] = r.rating
+        rating_matrix[r.user_id, r.movie_id] = r.rating
     return rating_matrix
 
 
