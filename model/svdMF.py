@@ -1,13 +1,9 @@
-from typing import List
-
 import numpy as np
-
-from tool.data_reader import Rating, generate_rating_matrix
 
 
 class SvdMF(object):
-    def __init__(self, ratings_train: List[Rating], pac_p: float):
-        self.M = generate_rating_matrix(ratings_train)
+    def __init__(self, rating_matrix: np.ndarray, pac_p: float):
+        self.M = rating_matrix
         self.PAC_P = pac_p
 
         self.U = None

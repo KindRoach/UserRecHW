@@ -4,6 +4,7 @@ from typing import List
 import numpy as np
 
 from tool.log_helper import get_logger
+from tool.path_helper import ROOT_DIR
 
 
 @dataclass
@@ -33,7 +34,8 @@ class Rating(object):
 
 def read_movies() -> List[Movie]:
     movies = []
-    with open("data/movies.dat", encoding="utf-8") as f:
+    path = ROOT_DIR.joinpath("data/movies.dat")
+    with open(path, encoding="utf-8") as f:
         for line in f.readlines():
             cols = line.strip().split("::")
             m_id = int(cols[0])
@@ -46,7 +48,8 @@ def read_movies() -> List[Movie]:
 
 def read_users() -> List[User]:
     users = []
-    with open("data/users.dat", encoding="utf-8") as f:
+    path = ROOT_DIR.joinpath("data/users.dat")
+    with open(path, encoding="utf-8") as f:
         for line in f.readlines():
             cols = line.strip().split("::")
             user_id = int(cols[0])
@@ -60,7 +63,8 @@ def read_users() -> List[User]:
 
 def read_ratings() -> List[Rating]:
     ratings = []
-    with open("data/ratings.dat", encoding="utf-8") as f:
+    path = ROOT_DIR.joinpath("data/ratings.dat")
+    with open(path, encoding="utf-8") as f:
         for line in f.readlines():
             cols = line.strip().split("::")
             user_id = int(cols[0])

@@ -1,13 +1,9 @@
-from typing import List
-
 import numpy as np
-
-from tool.data_reader import Rating, generate_rating_matrix
 
 
 class ItemCF(object):
-    def __init__(self, ratings_train: List[Rating], knn_k: int):
-        self.M = generate_rating_matrix(ratings_train).T
+    def __init__(self, ratings_matrix: np.ndarray, knn_k: int):
+        self.M = ratings_matrix.T
         self.KNN_K = knn_k
 
     def train(self):
