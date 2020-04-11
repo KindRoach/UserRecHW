@@ -36,10 +36,6 @@ for model in [
                 # log progress.
                 if (i + 1) % 100 == 0:
                     f.flush()
-                    logger.info("%s %s:%s %.3f k=%s " % (
-                        model_name,
-                        i + 1, len(ratings_test),
-                        mse, model.PAC_K,
-                    ))
+                    logger.info("%s %s:%s %.3f " % (model_name, i + 1, len(ratings_test), mse))
             except:
                 logger.exception("error for rating " + str(i))
