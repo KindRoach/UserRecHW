@@ -1,9 +1,13 @@
+from typing import List
+
 import numpy as np
+
+from tool.data_reader import Rating, generate_rating_matrix
 
 
 class SvdMF(object):
-    def __init__(self, rating_matrix: np.ndarray, pac_p: float):
-        self.M = rating_matrix
+    def __init__(self, pac_p: float):
+        self.M = None
         self.PAC_P = pac_p
 
         self.U = None
@@ -11,7 +15,8 @@ class SvdMF(object):
         self.V = None
         self.PAC_K = 0
 
-    def train(self):
+    def fit(self, ratings_train: List[Rating]):
+        self.M = generate_rating_matrix(ratings_train)
         self.U, self.S, self.V = np.linalg.svd(self.M, full_matrices=False)
         total_pac = self.S.sum()
         current_pac = 0

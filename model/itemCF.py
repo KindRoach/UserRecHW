@@ -1,13 +1,17 @@
+from typing import List
+
 import numpy as np
+
+from tool.data_reader import Rating, generate_rating_matrix
 
 
 class ItemCF(object):
-    def __init__(self, ratings_matrix: np.ndarray, knn_k: int):
-        self.M = ratings_matrix.T
+    def __init__(self, knn_k: int):
+        self.M = None
         self.KNN_K = knn_k
 
-    def train(self):
-        pass
+    def fit(self, ratings_train: List[Rating]):
+        self.M = generate_rating_matrix(ratings_train).T
 
     def calculate_movie_sim(self, i: int, j: int):
         users_like_i = set(np.where(self.M[i, :] != 0)[0])

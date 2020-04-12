@@ -1,13 +1,17 @@
+from typing import List
+
 import numpy as np
+
+from tool.data_reader import Rating, generate_rating_matrix
 
 
 class UserCF(object):
-    def __init__(self, rating_matrix: np.ndarray, knn_k: int):
-        self.M = rating_matrix
+    def __init__(self, knn_k: int):
+        self.M = None
         self.KNN_K = knn_k
 
-    def train(self):
-        pass
+    def fit(self, ratings_train: List[Rating]):
+        self.M = generate_rating_matrix(ratings_train)
 
     def calculate_avg_rating_for_user(self, i):
         return self.M[i, :].sum() / (self.M[i, :] != 0).sum()

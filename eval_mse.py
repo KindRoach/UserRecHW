@@ -1,24 +1,23 @@
 from sklearn.model_selection import train_test_split
 
+from model.itemCF import ItemCF
 from model.svdMF import SvdMF
 from model.userCF import UserCF
-from tool.data_reader import all_ratings, generate_rating_matrix
-from model.itemCF import ItemCF
+from tool.data_reader import all_ratings
 from tool.log_helper import get_logger
 from tool.path_helper import ROOT_DIR
 
-ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.999)
-ratings_matrix = generate_rating_matrix(ratings_train)
+ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.9999)
 for model in [
-    ItemCF(ratings_matrix, knn_k=10),
-    UserCF(ratings_matrix, knn_k=100),
-    SvdMF(ratings_matrix, pac_p=0.9)
+    ItemCF(knn_k=10),
+    UserCF(knn_k=100),
+    SvdMF(pac_p=0.9)
 ]:
 
     model_name = model.__class__.__name__
     logger = get_logger(model_name)
     logger.info("training model: " + model_name)
-    model.train()
+    model.fit(ratings_train)
     logger.info("model trained: " + model_name)
 
     total_error = 0
