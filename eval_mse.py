@@ -57,9 +57,8 @@ for file_name in [
         while line:
             cols = line.strip().split(' ')
             pre = float(cols[2])
-            if not pre > 0:
-                continue
-            i += 1
-            total_error += (float(cols[3]) - pre) ** 2
-            f_out.write("%s\n" % (total_error / i))
+            if pre >= 0:
+                i += 1
+                total_error += (float(cols[3]) - pre) ** 2
+                f_out.write("%s\n" % (total_error / i))
             line = f_in.readline()
