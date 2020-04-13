@@ -4,7 +4,7 @@ from model.itemCF import ItemCF
 from model.svdMF import SvdMF
 from model.userCF import UserCF
 from tool.data_reader import all_ratings
-from tool.log_helper import get_logger
+from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
 
 ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.9999)
@@ -15,7 +15,6 @@ for model in [
 ]:
 
     model_name = model.__class__.__name__
-    logger = get_logger(model_name)
     logger.info("training model: " + model_name)
     model.fit(ratings_train)
     logger.info("model trained: " + model_name)

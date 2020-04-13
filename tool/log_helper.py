@@ -25,3 +25,6 @@ def get_logger(name: str = "logger"):
         logger.addHandler(ch)
 
     return logger
+
+
+logger = get_logger("UserRecHW")
