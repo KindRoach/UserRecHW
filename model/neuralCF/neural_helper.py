@@ -25,9 +25,9 @@ def generate_tensor_data(ratings: List[Rating], batch_size: int, use_cuda: bool)
     rating_tensor = torch.FloatTensor([r.rating for r in ratings])
 
     if use_cuda:
-        user_tensor.cuda()
-        movie_tensor.cuda()
-        rating_tensor.cuda()
+        user_tensor = user_tensor.cuda()
+        movie_tensor = movie_tensor.cuda()
+        rating_tensor = rating_tensor.cuda()
 
     dataset = data.TensorDataset(user_tensor, movie_tensor, rating_tensor)
     data_iter = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -35,6 +35,7 @@ def generate_tensor_data(ratings: List[Rating], batch_size: int, use_cuda: bool)
 
 
 def train_neural(model: torch.nn.Module, ratings: List[Rating]):
+    logger.info("%s Training..." % model.__class__.__name__)
     model.train()
     config: TrainConfig = model.train_config
     data_iter = generate_tensor_data(ratings, config.batch_size, config.use_cuda)
@@ -44,6 +45,7 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
     lr_s = lr_scheduler.ExponentialLR(opt, gamma=0.9)
 
     loss = torch.nn.BCELoss()
+    last_progress = 0.
     while model.current_epoch < config.num_epochs:
         for batch_id, iter_i in enumerate(data_iter):
             user, movie, rating = iter_i
@@ -59,13 +61,17 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
             current_batches = model.current_epoch * len(data_iter.dataset) + (batch_id + 1.0) * config.batch_size
             total_batches = config.num_epochs * len(data_iter.dataset)
             progress = current_batches / total_batches
-            logger.info("epoch %d, batch %d, loss: %f (%.1f%%)" %
-                        (model.current_epoch, batch_id, model.current_loss, 100.0 * progress))
+            if progress - last_progress > 0.001:
+                logger.info("epoch %d, batch %d, loss: %f (%.1f%%)" %
+                            (model.current_epoch, batch_id, model.current_loss, 100.0 * progress))
+                last_progress = progress
 
         # complete one epoch
         lr_s.step()
         model.current_epoch += 1
         save_model(model)
+
+    logger.info("%s Trained." % model.__class__.__name__)
 
 
 def save_model(model: torch.nn.Module):

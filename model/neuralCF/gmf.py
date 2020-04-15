@@ -34,7 +34,7 @@ class GMF(torch.nn.Module):
         if train_config is not None:
             self.train_config = train_config
         else:
-            self.train_config = GMF.get_default_config()
+            self.train_config = get_default_config()
 
         if self.train_config.use_cuda:
             self.cuda()
