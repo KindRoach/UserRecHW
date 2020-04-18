@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 from typing import List
 
@@ -19,15 +20,10 @@ class TrainConfig(object):
     use_cuda: bool
 
 
-def generate_tensor_data(ratings: List[Rating], batch_size: int, use_cuda: bool):
-    user_tensor = torch.LongTensor([r.user_id for r in ratings])
-    movie_tensor = torch.LongTensor([r.movie_id for r in ratings])
-    rating_tensor = torch.FloatTensor([r.rating for r in ratings])
-
-    if use_cuda:
-        user_tensor = user_tensor.cuda()
-        movie_tensor = movie_tensor.cuda()
-        rating_tensor = rating_tensor.cuda()
+def generate_tensor_data(ratings: List[Rating], batch_size: int, device: torch.device):
+    user_tensor = torch.LongTensor([r.user_id for r in ratings]).to(device)
+    movie_tensor = torch.LongTensor([r.movie_id for r in ratings]).to(device)
+    rating_tensor = torch.FloatTensor([r.rating for r in ratings]).to(device)
 
     dataset = data.TensorDataset(user_tensor, movie_tensor, rating_tensor)
     data_iter = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -36,15 +32,20 @@ def generate_tensor_data(ratings: List[Rating], batch_size: int, use_cuda: bool)
 
 def train_neural(model: torch.nn.Module, ratings: List[Rating]):
     logger.info("%s Training..." % model.__class__.__name__)
-    model.train()
+
     config: TrainConfig = model.train_config
-    data_iter = generate_tensor_data(ratings, config.batch_size, config.use_cuda)
+
+    if config.use_cuda:
+        model.cuda()
+
+    model.train()
+    data_iter = generate_tensor_data(ratings, config.batch_size, model.get_device())
     opt = torch.optim.Adam(model.parameters(),
                            lr=config.learning_rate,
                            weight_decay=config.l2_regularization)
     lr_s = lr_scheduler.ExponentialLR(opt, gamma=0.9)
-
     loss = torch.nn.BCELoss()
+
     last_progress = 0.
     while model.current_epoch < config.num_epochs:
         for batch_id, iter_i in enumerate(data_iter):
@@ -76,9 +77,9 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
 
 def save_model(model: torch.nn.Module):
     config: TrainConfig = model.train_config
-    path = "model/neuralCF/checkpoints/%s_%d_%g_%g.pt" % (
-        model.__class__.__name__, config.batch_size,
-        config.learning_rate, config.l2_regularization
+    path = "model/neuralCF/checkpoints/%s_%s_%d_%g_%g.pt" % (
+        model.__class__.__name__, time.strftime("%Y%m%d%H%M%S", time.localtime())
+        , config.batch_size, config.learning_rate, config.l2_regularization
     )
     path = ROOT_DIR.joinpath(path)
     torch.save(model, path)
@@ -90,3 +91,19 @@ def load_model(path: str):
     if model.train_config.use_cuda:
         model.cuda()
     return model
+
+
+def predict(model, user_id: int, movie_id: int) -> float:
+    device = model.get_device()
+    user_id = torch.Tensor([user_id]).to(device)
+    movie_id = torch.Tensor([movie_id]).to(device)
+    predict = model(user_id, movie_id)[0]
+    return predict
+
+
+def predict_many(model, user_ids: List[int], movie_ids: List[int]) -> List[float]:
+    device = model.get_device()
+    user_ids = torch.Tensor(user_ids).to(device)
+    movie_ids = torch.Tensor(movie_ids).to(device)
+    predict = model(user_ids, movie_ids)
+    return predict.tolist()

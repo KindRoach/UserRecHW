@@ -1,23 +1,22 @@
-from typing import List
-
 import torch
 
-from model.neuralCF.neural_helper import train_neural, TrainConfig
-from tool.data_reader import Rating
+from model.neuralCF.base_model import BaseModel
+from model.neuralCF.neural_helper import TrainConfig
 
 
 def get_default_config() -> TrainConfig:
     return TrainConfig(num_epochs=100,
-                       batch_size=4096,
+                       batch_size=1024,
                        learning_rate=0.01,
                        l2_regularization=0.01,
                        use_cuda=False)
 
 
-class GMF(torch.nn.Module):
-    def __init__(self, num_users: int, num_items: int, latent_dim: int = 8,
-                 train_config: TrainConfig = None):
-        super(GMF, self).__init__()
+class GMF(BaseModel):
+    def __init__(self, num_users: int, num_items: int, latent_dim: int = 8, train_config: TrainConfig = None):
+        if train_config is None:
+            self.train_config = get_default_config()
+        super(GMF, self).__init__(train_config)
 
         self.num_users = num_users + 1
         self.num_items = num_items + 1
@@ -28,17 +27,6 @@ class GMF(torch.nn.Module):
         self.affine_output = torch.nn.Linear(self.latent_dim, 1)
         self.logistic = torch.nn.Sigmoid()
 
-        self.current_epoch = 0
-        self.current_loss = 0
-
-        if train_config is not None:
-            self.train_config = train_config
-        else:
-            self.train_config = get_default_config()
-
-        if self.train_config.use_cuda:
-            self.cuda()
-
     def forward(self, user_indices, item_indices):
         user_embedding = self.embedding_user(user_indices)
         item_embedding = self.embedding_item(item_indices)
@@ -46,9 +34,3 @@ class GMF(torch.nn.Module):
         logits = self.affine_output(element_product)
         rating = self.logistic(logits)
         return rating
-
-    def init_weight(self):
-        pass
-
-    def fit(self, ratings: List[Rating]):
-        train_neural(self, ratings)
