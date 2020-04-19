@@ -88,23 +88,22 @@ def save_model(model: torch.nn.Module, train_time: time.struct_time):
 
 def load_model(path: str):
     path = ROOT_DIR.joinpath(path)
-    model = torch.load(path)
-    if model.train_config.use_cuda:
-        model.cuda()
+    # load model to cpu as default.
+    model = torch.load(path, map_location=torch.device('cpu'))
     return model
 
 
-def predict(model, user_id: int, movie_id: int) -> float:
+def predict(model, user_id: int, movie_id: int) -> int:
     device = model.get_device()
-    user_id = torch.Tensor([user_id]).to(device)
-    movie_id = torch.Tensor([movie_id]).to(device)
+    user_id = torch.LongTensor([user_id]).to(device)
+    movie_id = torch.LongTensor([movie_id]).to(device)
     predict = model(user_id, movie_id)[0]
     return predict
 
 
 def predict_many(model, user_ids: List[int], movie_ids: List[int]) -> List[float]:
     device = model.get_device()
-    user_ids = torch.Tensor(user_ids).to(device)
-    movie_ids = torch.Tensor(movie_ids).to(device)
+    user_ids = torch.LongTensor(user_ids).to(device)
+    movie_ids = torch.LongTensor(movie_ids).to(device)
     predict = model(user_ids, movie_ids)
     return predict.tolist()
