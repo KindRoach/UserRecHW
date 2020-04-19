@@ -32,6 +32,7 @@ def generate_tensor_data(ratings: List[Rating], batch_size: int, device: torch.d
 
 def train_neural(model: torch.nn.Module, ratings: List[Rating]):
     logger.info("%s Training..." % model.__class__.__name__)
+    train_time = time.localtime()
 
     config: TrainConfig = model.train_config
 
@@ -70,15 +71,15 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
         # complete one epoch
         lr_s.step()
         model.current_epoch += 1
-        save_model(model)
+        save_model(model, train_time)
 
     logger.info("%s Trained." % model.__class__.__name__)
 
 
-def save_model(model: torch.nn.Module):
+def save_model(model: torch.nn.Module, train_time: time.struct_time):
     config: TrainConfig = model.train_config
     path = "model/neuralCF/checkpoints/%s_%s_%d_%g_%g.pt" % (
-        model.__class__.__name__, time.strftime("%Y%m%d%H%M%S", time.localtime())
+        model.__class__.__name__, time.strftime("%Y%m%d%H%M%S", train_time)
         , config.batch_size, config.learning_rate, config.l2_regularization
     )
     path = ROOT_DIR.joinpath(path)

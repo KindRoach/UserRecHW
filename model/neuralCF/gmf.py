@@ -8,14 +8,14 @@ def get_default_config() -> TrainConfig:
     return TrainConfig(num_epochs=100,
                        batch_size=1024,
                        learning_rate=0.01,
-                       l2_regularization=0.01,
-                       use_cuda=False)
+                       l2_regularization=0.0,
+                       use_cuda=True)
 
 
 class GMF(BaseModel):
     def __init__(self, num_users: int, num_items: int, latent_dim: int = 8, train_config: TrainConfig = None):
         if train_config is None:
-            self.train_config = get_default_config()
+            train_config = get_default_config()
         super(GMF, self).__init__(train_config)
 
         self.num_users = num_users + 1

@@ -11,7 +11,7 @@ def get_default_config() -> TrainConfig:
                        batch_size=256,
                        learning_rate=0.01,
                        l2_regularization=0.0000001,
-                       use_cuda=False)
+                       use_cuda=True)
 
 
 class MLP(BaseModel):
@@ -20,7 +20,7 @@ class MLP(BaseModel):
                  hidden_layer_dims: List[int] = [64, 32, 16],
                  train_config: TrainConfig = None):
         if train_config is None:
-            self.train_config = get_default_config()
+            train_config = get_default_config()
         super(MLP, self).__init__(train_config)
 
         self.num_users = num_users + 1

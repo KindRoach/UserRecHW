@@ -9,7 +9,7 @@ from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Movie(object):
     id: int
     name: str
@@ -17,7 +17,7 @@ class Movie(object):
     genres: List[str]
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class User(object):
     id: int
     gender: str
@@ -26,7 +26,7 @@ class User(object):
     zip_code: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Rating(object):
     user_id: int
     movie_id: int
@@ -121,6 +121,21 @@ def generate_implicit_ratings_with_negative(ratings: List[Rating], negative_num:
 
     logger.info("ratings generated!")
     return ratings_with_negative
+
+
+def split_ratings_by_remain_one(ratings: List[Rating]) -> (List[Rating], List[Rating]):
+    ratings_train = []
+    ratings_test = []
+
+    random.seed(42)
+    for user_id, rs in itertools.groupby(ratings, key=lambda r: r.user_id):
+        rs = set(rs)
+        sample_one = random.sample(rs, 1)[0]
+        rs.remove(sample_one)
+        ratings_train.extend(rs)
+        ratings_test.append(sample_one)
+
+    return ratings_train, ratings_test
 
 
 logger.info("loading origin data from file...")
