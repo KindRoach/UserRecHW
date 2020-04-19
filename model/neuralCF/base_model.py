@@ -11,7 +11,7 @@ class BaseModel(torch.nn.Module):
     def __init__(self, train_config: TrainConfig):
         super().__init__()
         self.current_epoch = 0
-        self.current_loss = 0
+        self.train_loss = dict()
         self.train_config = train_config
 
     def fit(self, ratings: List[Rating]):

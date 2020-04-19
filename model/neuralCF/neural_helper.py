@@ -6,6 +6,7 @@ import torch
 from torch.optim import lr_scheduler
 from torch.utils import data
 
+from model.neuralCF.base_model import BaseModel
 from tool.data_reader import Rating
 from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
@@ -30,7 +31,7 @@ def generate_tensor_data(ratings: List[Rating], batch_size: int, device: torch.d
     return data_iter
 
 
-def train_neural(model: torch.nn.Module, ratings: List[Rating]):
+def train_neural(model: BaseModel, ratings: List[Rating]):
     logger.info("%s Training..." % model.__class__.__name__)
     train_time = time.localtime()
 
@@ -54,7 +55,6 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
 
             # train one step
             li = loss(model(user, movie).view(-1), rating)
-            model.current_loss = li.item()
             opt.zero_grad()
             li.backward()
             opt.step()
@@ -65,10 +65,15 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
             progress = current_batches / total_batches
             if progress - last_progress > 0.001:
                 logger.info("epoch %d, batch %d, loss: %f (%.1f%%)" %
-                            (model.current_epoch, batch_id, model.current_loss, 100.0 * progress))
+                            (model.current_epoch, batch_id, li.item(), 100.0 * progress))
                 last_progress = progress
 
         # complete one epoch
+        all_user, all_movie, all_rating = data_iter.dataset.tensors
+        total_loss = loss(model(all_user, all_movie).view(-1), all_rating)
+        model.train_loss[model.current_epoch] = total_loss.item()
+        logger.info("Epoch %d complete. Total loss=%f" % (model.current_epoch, total_loss.item()))
+
         lr_s.step()
         model.current_epoch += 1
         save_model(model, train_time)
@@ -76,7 +81,7 @@ def train_neural(model: torch.nn.Module, ratings: List[Rating]):
     logger.info("%s Trained." % model.__class__.__name__)
 
 
-def save_model(model: torch.nn.Module, train_time: time.struct_time):
+def save_model(model: BaseModel, train_time: time.struct_time):
     config: TrainConfig = model.train_config
     path = "model/neuralCF/checkpoints/%s_%s_%d_%g_%g.pt" % (
         model.__class__.__name__, time.strftime("%Y%m%d%H%M%S", train_time)
