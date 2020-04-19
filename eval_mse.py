@@ -7,7 +7,7 @@ from tool.data_reader import all_ratings
 from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
 
-ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.9999)
+ratings_train, ratings_test = train_test_split(all_ratings, random_state=42, train_size=0.8)
 for model in [
     ItemCF(knn_k=10),
     UserCF(knn_k=100),
@@ -20,7 +20,7 @@ for model in [
     logger.info("model trained: " + model_name)
 
     total_error = 0
-    path = ROOT_DIR.joinpath("out/" + logger.name + ".csv")
+    path = ROOT_DIR.joinpath("out/" + model_name + ".csv")
     with open(path, 'w', encoding="utf-8") as f:
         for i, r in enumerate(ratings_test):
             try:

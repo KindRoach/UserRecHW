@@ -2,8 +2,7 @@ from typing import List
 
 import torch
 
-from model.neuralCF.base_model import BaseModel
-from model.neuralCF.neural_helper import TrainConfig
+from model.neuralCF.neural_helper import TrainConfig, BaseModel
 
 
 def get_default_config() -> TrainConfig:

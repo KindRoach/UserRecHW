@@ -6,7 +6,6 @@ import torch
 from torch.optim import lr_scheduler
 from torch.utils import data
 
-from model.neuralCF.base_model import BaseModel
 from tool.data_reader import Rating
 from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
@@ -21,14 +20,24 @@ class TrainConfig(object):
     use_cuda: bool
 
 
-def generate_tensor_data(ratings: List[Rating], batch_size: int, device: torch.device):
-    user_tensor = torch.LongTensor([r.user_id for r in ratings]).to(device)
-    movie_tensor = torch.LongTensor([r.movie_id for r in ratings]).to(device)
-    rating_tensor = torch.FloatTensor([r.rating for r in ratings]).to(device)
+class BaseModel(torch.nn.Module):
+    def __init__(self, train_config: TrainConfig):
+        super().__init__()
+        self.current_epoch = 0
+        self.train_loss = dict()
+        self.train_config = train_config
 
-    dataset = data.TensorDataset(user_tensor, movie_tensor, rating_tensor)
-    data_iter = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    return data_iter
+    def fit(self, ratings: List[Rating]):
+        train_neural(self, ratings)
+
+    def predict(self, user_id: int, movie_id: int) -> float:
+        return predict(self, user_id, movie_id)
+
+    def predict_many(self, user_ids: List[int], movie_ids: List[int]) -> List[float]:
+        return predict_many(self, user_ids, movie_ids)
+
+    def get_device(self):
+        return list(self.parameters())[0].device
 
 
 def train_neural(model: BaseModel, ratings: List[Rating]):
@@ -79,6 +88,16 @@ def train_neural(model: BaseModel, ratings: List[Rating]):
         save_model(model, train_time)
 
     logger.info("%s Trained." % model.__class__.__name__)
+
+
+def generate_tensor_data(ratings: List[Rating], batch_size: int, device: torch.device):
+    user_tensor = torch.LongTensor([r.user_id for r in ratings]).to(device)
+    movie_tensor = torch.LongTensor([r.movie_id for r in ratings]).to(device)
+    rating_tensor = torch.FloatTensor([r.rating for r in ratings]).to(device)
+
+    dataset = data.TensorDataset(user_tensor, movie_tensor, rating_tensor)
+    data_iter = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return data_iter
 
 
 def save_model(model: BaseModel, train_time: time.struct_time):

@@ -3,8 +3,10 @@ import math
 from typing import List
 
 from model.neuralCF.neural_helper import load_model
-from tool.data_reader import split_ratings_by_remain_one, all_ratings, generate_implicit_ratings_with_negative
+from model.svdMF import SvdMF
+from tool.data_reader import max_user_id, read_ratings
 from tool.log_helper import logger
+from tool.path_helper import ROOT_DIR
 
 
 def cal_ndcg(pred_score: List[int], k: int) -> float:
@@ -31,18 +33,22 @@ def cal_hr(pred_score: List[int], k: int) -> float:
     return hit / total
 
 
-ratings_train, ratings_test = split_ratings_by_remain_one(all_ratings)
-ratings = generate_implicit_ratings_with_negative(ratings_test, negative_num=99)
+ratings_test = read_ratings("data/ratings_test_with_negative.dat")
+nmf = load_model("model/neuralCF/checkpoints/NeuralMF_20200418195954_1024_0.01_0.pt")
 
-model = load_model("model/neuralCF/checkpoints/NeuralMF_20200418195954_1024_0.01_0.pt")
-
-count = 0
-hr = 0.
-ndcg = 0.
-for user_id, rs in itertools.groupby(ratings, key=lambda r: r.user_id):
-    count += 1
-    rs = sorted(rs, key=lambda r: model.predict(r.user_id, r.movie_id), reverse=True)
-    pred = [r.rating for r in rs]
-    hr += cal_hr(pred, 10)
-    ndcg += cal_ndcg(pred, 10)
-    logger.info("Hr@10=%.3f Ndcg@10=%.3f" % (hr / count, ndcg / count))
+for model in [nmf]:
+    model_name = model.__class__.__name__
+    path = ROOT_DIR.joinpath("out/" + model_name + ".hr")
+    with open(path, 'w', encoding="utf-8") as f:
+        count, hr, ndcg = 0, 0., 0.
+        logger.info("eval %s..." % model_name)
+        for user_id, rs in itertools.groupby(ratings_test, key=lambda r: r.user_id):
+            count += 1
+            rs = sorted(rs, key=lambda r: model.predict(r.user_id, r.movie_id), reverse=True)
+            pred = [r.rating for r in rs]
+            hr += cal_hr(pred, 10)
+            ndcg += cal_ndcg(pred, 10)
+            f.write("Hr@10=%.3f Ndcg@10=%.3f\n" % (hr / count, ndcg / count))
+            if user_id % 100 == 0:
+                logger.info("finish user_id %s (%.1f%%)" % (user_id, 100.0 * user_id / max_user_id))
+        logger.info("eval done!")
