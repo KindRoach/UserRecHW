@@ -3,7 +3,6 @@ import math
 from typing import List
 
 from model.neuralCF.neural_helper import load_model
-from model.svdMF import SvdMF
 from tool.data_reader import max_user_id, read_ratings
 from tool.log_helper import logger
 from tool.path_helper import ROOT_DIR
@@ -34,12 +33,17 @@ def cal_hr(pred_score: List[int], k: int) -> float:
 
 
 ratings_test = read_ratings("data/ratings_test_with_negative.dat")
-nmf = load_model("model/neuralCF/checkpoints/NeuralMF_20200418195954_1024_0.01_0.pt")
+gmf = load_model("model/neuralCF/checkpoints/GMF_20200419214405_1024_0.01_0.pt")
+mlp = load_model("model/neuralCF/checkpoints/MLP_20200424151759_256_0.01_1e-07.pt")
+nmf = load_model("model/neuralCF/checkpoints/NeuralMF_20200425012115_1024_0.01_0.pt")
 
-for model in [nmf]:
+for model in [gmf, mlp, nmf]:
     model_name = model.__class__.__name__
+
+    # calculate and log hr & ndcg@10
     path = ROOT_DIR.joinpath("out/" + model_name + ".hr")
     with open(path, 'w', encoding="utf-8") as f:
+        f.write("hr@10,ndcg@10\n")
         count, hr, ndcg = 0, 0., 0.
         logger.info("eval %s..." % model_name)
         for user_id, rs in itertools.groupby(ratings_test, key=lambda r: r.user_id):
@@ -48,7 +52,14 @@ for model in [nmf]:
             pred = [r.rating for r in rs]
             hr += cal_hr(pred, 10)
             ndcg += cal_ndcg(pred, 10)
-            f.write("Hr@10=%.3f Ndcg@10=%.3f\n" % (hr / count, ndcg / count))
+            f.write("%s,%s\n" % (hr / count, ndcg / count))
             if user_id % 100 == 0:
                 logger.info("finish user_id %s (%.1f%%)" % (user_id, 100.0 * user_id / max_user_id))
         logger.info("eval done!")
+
+    # log loss per epoch
+    path = ROOT_DIR.joinpath("out/" + model_name + ".loss")
+    with open(path, 'w', encoding="utf-8") as f:
+        f.write("epoch,loss\n")
+        for k, v in model.train_loss.items():
+            f.write("%s,%s\n" % (k, v))

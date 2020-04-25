@@ -2,6 +2,7 @@ from model.neuralCF import gmf, mlp, nmf
 from tool.data_reader import generate_implicit_ratings_with_negative, all_ratings, max_user_id, max_movie_id, \
     save_ratings, read_ratings, split_ratings_by_remain_one
 
+# onetime code: generate train and test data.
 ratings_train, ratings_test = split_ratings_by_remain_one(all_ratings)
 ratings = generate_implicit_ratings_with_negative(ratings_train, negative_num=4)
 save_ratings(ratings, "data/ratings_train_with_negative.dat")

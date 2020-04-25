@@ -63,8 +63,8 @@ def train_neural(model: BaseModel, ratings: List[Rating]):
             user, movie, rating = iter_i
 
             # train one step
-            li = loss(model(user, movie).view(-1), rating)
             opt.zero_grad()
+            li = loss(model(user, movie).view(-1), rating)
             li.backward()
             opt.step()
 
@@ -78,12 +78,13 @@ def train_neural(model: BaseModel, ratings: List[Rating]):
                 last_progress = progress
 
         # complete one epoch
-        all_user, all_movie, all_rating = data_iter.dataset.tensors
-        total_loss = loss(model(all_user, all_movie).view(-1), all_rating)
-        model.train_loss[model.current_epoch] = total_loss.item()
-        logger.info("Epoch %d complete. Total loss=%f" % (model.current_epoch, total_loss.item()))
+        with torch.no_grad():
+            all_user, all_movie, all_rating = data_iter.dataset.tensors
+            total_loss = loss(model(all_user, all_movie).view(-1), all_rating)
+            model.train_loss[model.current_epoch] = total_loss.item()
+            logger.info("Epoch %d complete. Total loss=%f" % (model.current_epoch, total_loss.item()))
 
-        lr_s.step()
+        lr_s.step(model.current_epoch)
         model.current_epoch += 1
         save_model(model, train_time)
 

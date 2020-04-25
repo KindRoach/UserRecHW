@@ -10,7 +10,7 @@ def get_default_config() -> TrainConfig:
                        batch_size=256,
                        learning_rate=0.01,
                        l2_regularization=0.0000001,
-                       use_cuda=True)
+                       use_cuda=False)
 
 
 class MLP(BaseModel):
